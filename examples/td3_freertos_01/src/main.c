@@ -1,4 +1,5 @@
 /* Copyright 2017
+	codigo basado en el libro Sistemas Empotrados en tiempo real - Pagina 96 (Ejemplo usando FreeRTOS)
  */
 
 /*==================[inclusions]=============================================*/
@@ -92,14 +93,13 @@ static void ImprimeHora(void * a)
 	while (1){
 		if( xSemaphoreTake (sem_hora , ( portTickType ) 2000 ) == pdTRUE ){
 			/* Se bloquea hasta que llegue la interrupción de tiempo */
-//			DisableInt();
+//			DisableInt();  por ???
 			copia_hora = hora_act ;
 //			EnableInt ();
 			sprintf (cadena , " %02d: %02d: %02d\n", copia_hora.hor, copia_hora.min, copia_hora .seg );
 			if( xSemaphoreTake (sem_serie, ( portTickType ) 1000 ) == pdTRUE ){
 				SeriePuts (cadena); /* Se tiene el semáforo : se puede acceder al puerto serie */
-			
-			xSemaphoreGive ( sem_serie ); /*Se suelta el semáforo */
+				xSemaphoreGive ( sem_serie ); /*Se suelta el semáforo */
 			}else{
 				/* Después de 1000 ticks no se ha obtenido el
 				semáforo . Se podría dar un aviso o
@@ -137,7 +137,7 @@ static void EnviaEntradas(void * a)
 
 void RIT_IRQHandler(void)
 {
-	Board_LED_Toggle(5);
+	Board_LED_Toggle(0); //titila led verde ...
 	
 	portBASE_TYPE xTaskWoken = pdFALSE ;
 	
@@ -175,13 +175,14 @@ int main(void)
 	InitSerie();
 	//InitQueSeYo ();
 	/* Se inicializan los semáforos */
-	vSemaphoreCreateBinary (sem_serie);
-	vSemaphoreCreateBinary (sem_hora);
+	vSemaphoreCreateBinary (sem_serie); //se crea por defecto en 1
+	vSemaphoreCreateBinary (sem_hora);  //se crea por defecto en 1
+	xSemaphoreTake (sem_hora , ( portTickType ) 1); //es para que ImprimeHora se bloquee hasta que llegue a IRQ
 	/* Se crean las tareas */
 	xTaskCreate(ImprimeHora, (const char *)"ImpHora", TAM_PILA, NULL, PRIO_IMP_HORA, NULL );
 	xTaskCreate(EnviaEntradas, (const char *)"EnvEntr", TAM_PILA, NULL, PRIO_ENV_ENTR, NULL );
 
-	NVIC_EnableIRQ(RITIMER_IRQn);
+	NVIC_EnableIRQ(RITIMER_IRQn); //comentar esta linea .....
 	vTaskStartScheduler(); /* y por último se arranca el planificador . */
 }
 
