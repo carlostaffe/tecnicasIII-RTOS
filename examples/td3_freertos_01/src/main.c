@@ -1,5 +1,18 @@
 /* Copyright 2017
-	codigo basado en el libro Sistemas Empotrados en tiempo real - Pagina 96 (Ejemplo usando FreeRTOS)
+	codigo basado en el libro Sistemas Empotrados en tiempo real 
+4.5.1. Ejemplo (Pagina 96) (Ejemplo usando FreeRTOS) y modificación de
+4.5.3. Semáforos usados para sincronizar tareas (Pagina 101)
+Para ilustrar el funcionamiento de los semáforos, supóngase que en un
+sistema se necesita enviar la hora constantemente (en realidad sólo cuando
+cambie) por el puerto serie y el estado de 8 entradas digitales. Por tanto,
+el puerto serie se comparte ahora por dos tareas: ImprimeHora() para imprimir
+la hora y EnviaEntradas() para imprimir el estado de las entradas.
+Será por tanto necesario arbitrar el acceso al puerto serie por ambas tareas,
+por ejemplo mediante un semáforo (sem_serie)
+Se usa un semáforo adicional (sem_hora) para que ImprimeHora() se quede
+bloqueado mientras no cambia la hora. Lo incrementa la rutina RIT_IRQHandler()
+sem_serie 	->	exclusion mutua para seccion critica
+sem_hora	->	serializar para imprimir luego de cambiar hora
  */
 
 /*==================[inclusions]=============================================*/
@@ -16,7 +29,7 @@
 
 /*==================[macros and definitions]=================================*/
 
-#define PRIO_IMP_HORA 2
+#define PRIO_IMP_HORA 2 //mas prioritaria
 #define PRIO_ENV_ENTR 1
 #define TAM_PILA 1024
 
@@ -93,7 +106,7 @@ static void ImprimeHora(void * a)
 	while (1){
 		if( xSemaphoreTake (sem_hora , ( portTickType ) 2000 ) == pdTRUE ){
 			/* Se bloquea hasta que llegue la interrupción de tiempo */
-//			DisableInt();  por ???
+//			DisableInt();  porque esta comentado ???
 			copia_hora = hora_act ;
 //			EnableInt ();
 			sprintf (cadena , " %02d: %02d: %02d\n", copia_hora.hor, copia_hora.min, copia_hora .seg );
@@ -137,7 +150,7 @@ static void EnviaEntradas(void * a)
 
 void RIT_IRQHandler(void)
 {
-	Board_LED_Toggle(0); //titila led verde ...
+	Board_LED_Toggle(5); //titila led verde ...
 	
 	portBASE_TYPE xTaskWoken = pdFALSE ;
 	
@@ -175,14 +188,14 @@ int main(void)
 	InitSerie();
 	//InitQueSeYo ();
 	/* Se inicializan los semáforos */
-	vSemaphoreCreateBinary (sem_serie); //se crea por defecto en 1
-	vSemaphoreCreateBinary (sem_hora);  //se crea por defecto en 1
-	xSemaphoreTake (sem_hora , ( portTickType ) 1); //es para que ImprimeHora se bloquee hasta que llegue a IRQ
+	vSemaphoreCreateBinary (sem_serie); //se inicializa por defecto en 1
+	vSemaphoreCreateBinary (sem_hora);  //se inicializa por defecto en 1
+	xSemaphoreTake (sem_hora , ( portTickType ) 1); //es para que ImprimeHora se bloquee hasta que llegue la 1ra IRQ 
 	/* Se crean las tareas */
 	xTaskCreate(ImprimeHora, (const char *)"ImpHora", TAM_PILA, NULL, PRIO_IMP_HORA, NULL );
 	xTaskCreate(EnviaEntradas, (const char *)"EnvEntr", TAM_PILA, NULL, PRIO_ENV_ENTR, NULL );
 
-	NVIC_EnableIRQ(RITIMER_IRQn); //comentar esta linea .....
+	NVIC_EnableIRQ(RITIMER_IRQn); //comentar que hace esta linea .....
 	vTaskStartScheduler(); /* y por último se arranca el planificador . */
 }
 

@@ -1,6 +1,13 @@
 /* Copyright 2017
  */
+/*4.7.  Colas para comunicar tareas (Pagina 108)
+ Cuando existen varios generadores de datos y un sólo consumidor y
+no se desea bloquear a los generadores a la espera de que el consu-
+midor obtenga los datos.
+4.7.2. (Pagina 111 ) Ejemplo de manejo de colas usando FreeRTOS
 
+
+*/
 /*==================[inclusions]=============================================*/
 
 #include "board.h"
@@ -10,7 +17,7 @@
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
 #include "task.h"
-#include "semphr.h"
+//#include "semphr.h"
 #include "queue.h"
 
 #include "main.h"
@@ -21,11 +28,11 @@
 
 /*==================[macros and definitions]=================================*/
 
-# define PRIO_T_ERR 1
+# define PRIO_T_ERR 1	//menos prioritaria
 # define PRIO_T1 2
 # define PRIO_T2 3
 # define PRIO_T3 4
-# define PRIO_T4 5
+# define PRIO_T4 5 		//mas prioritaria
 # define TAM_PILA 256
 
 # define TAM_COLA 20 /* 20 mensajes */
@@ -44,7 +51,7 @@ static void initHardware(void);
 
 /*==================[external data definition]===============================*/
 
-xQueueHandle cola_err;
+xQueueHandle cola_err; // Global, se usa de distintas tareas
 
 /*==================[internal functions definition]==========================*/
 
@@ -242,7 +249,10 @@ int main(void)
 	InitSerie();
 	//InitQueSeYo ();
 	
-	/* Se crea la cola */
+	/* Se crea la cola 
+    La función devuelve un “manejador”(file descriptor, mejor) que ha de pasarse a las funciones
+    que envían y reciben datos de la cola creada. */
+
 	cola_err = xQueueCreate (TAM_COLA, TAM_MSG);
 	
 	/* Se crean las tareas */
