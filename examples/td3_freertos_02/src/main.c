@@ -108,7 +108,7 @@ static void Tarea1 (void * pvParameters)
 		entradas_ant = entradas;
 		
 		if (error_1){
-			strcpy (cad_err, "T1:E01\n");
+			strcpy (cad_err, "T1:E00\n");
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 100);
 			Board_LED_Toggle(5); //titila led verde ...
 
@@ -232,14 +232,15 @@ static void TareaErr (void * pvParameters )
 {
 //	extern xQueueHandle cola_err ;
 	char cad_rec [8];
-	char cadena [100];
+	char cadena [20];
 
 	while (1){
 		if(xQueueReceive (cola_err , (void *) cad_rec,
 				(portTickType) 0xFFFFFFFF ) == pdTRUE ){
 			/* Se ha recibido un dato. Se escribe en EEPROM */
 			//EscEEPROM ((void *) cad_rec, 8);
-			sprintf (cadena , "EEPROM: %s\n", cad_rec );
+			/* Se ha recibido un dato. Se escribe en el puerto Serie */
+			sprintf (cadena , "Serial: %s\n", cad_rec );
 			SeriePuts (cadena);
 		}
 		/* si después de un timeout no se ha recibido nada

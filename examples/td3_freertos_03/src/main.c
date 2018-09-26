@@ -1,4 +1,17 @@
 /* Copyright 2017
+4.8.1. Rutinas de atención a interrupción en FreeRTOS
+
+Ejemplo de manejo de colas desde una rutina de atención a
+interrupción usando FreeRTOS (Pagina 120 )
+
+En dicho ejemplo se usa una cola para comunicar
+la rutina de interrupción del puerto serie con la tarea de primer plano. La
+rutina de atención a la interrupción se limita a copiar el carácter recibido
+de la UART en la cola. La tarea de primer plano se encarga de verificar si
+hay caracteres nuevos en la cola en cada iteración del bucle de scan. Si hay
+un carácter nuevo, lo saca de la cola y lo copia en una cadena denominada
+mensaje . Cuando recibe un mensaje completo, indicado por la recepción del
+carácter de retorno de carro, se procesa dicho mensaje
  */
 
 /*==================[inclusions]=============================================*/
@@ -88,7 +101,8 @@ void ProcesaRecSerie (void * pvParameters)
 			mensaje[indice] = car_rec;
 			if(mensaje[indice] == '\r'){
 				/* El \n indica el final del mensaje */
-				mensaje[indice+1] = '\0';
+				mensaje[indice+1] = '\n';
+				mensaje[indice+2] = '\0';
 				ProcesaMensaje(mensaje);
 				indice = 0;
 				Board_LED_Toggle(4);
