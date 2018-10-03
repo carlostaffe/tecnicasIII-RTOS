@@ -95,13 +95,13 @@ void ProcesaRecSerie (void * pvParameters)
 	while (1){		
 		if(xQueueReceive (cola_rec , &car_rec ,
 			(portTickType) 0x0 ) == pdTRUE){
-			/* Se ha recibido un carácter de la cola.
+			/* Se asegura comparando con pdTRUE que ha recibido un carácter de la cola.
 				Se almacena */
-			Board_LED_Toggle(0);
+			Board_LED_Toggle(0); //cambio el estado del led 
 			mensaje[indice] = car_rec;
 			if(mensaje[indice] == '\r'){
 				/* El \n indica el final del mensaje */
-				mensaje[indice+1] = '\n';
+				mensaje[indice+1] = '\n'; //agrego un new line al carriage return
 				mensaje[indice+2] = '\0';
 				ProcesaMensaje(mensaje);
 				indice = 0;
