@@ -150,7 +150,7 @@ static void EnviaEntradas(void * a)
 
 void RIT_IRQHandler(void)
 {
-	Board_LED_Toggle(5); //titila led verde ...
+	Board_LED_Toggle(5); //titila "LED 3" ( verde )
 	
 	portBASE_TYPE xTaskWoken = pdFALSE ;
 	

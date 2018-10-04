@@ -55,7 +55,7 @@ static void InitSerie(void)
 	/* Primero se crea la cola */
 	cola_rec = xQueueCreate (TAM_COLA , sizeof (char));
 	if( cola_rec == NULL ){
-		Board_LED_Set(3, TRUE); /* LED 3 indica error Fatal */
+		Board_LED_Set(3, TRUE); /* prende "LED 1" (amarillo) indica error Fatal */
 		while (1); /* Se queda bloqueado el sistema hasta que
 					venga el técnico de mantenimiento */
 	}
@@ -97,7 +97,9 @@ void ProcesaRecSerie (void * pvParameters)
 			(portTickType) 0x0 ) == pdTRUE){
 			/* Se asegura comparando con pdTRUE que ha recibido un carácter de la cola.
 				Se almacena */
-			Board_LED_Toggle(0); //cambio el estado del led 
+			Board_LED_Toggle(0); //cambio estado "LED RGB" (rojo)
+		//	Board_LED_Toggle(1); //cambio estado "LED RGB" (verde)
+		//	Board_LED_Toggle(2); //cambio estado "LED RGB" (azul)
 			mensaje[indice] = car_rec;
 			if(mensaje[indice] == '\r'){
 				/* El \n indica el final del mensaje */
@@ -105,7 +107,7 @@ void ProcesaRecSerie (void * pvParameters)
 				mensaje[indice+2] = '\0';
 				ProcesaMensaje(mensaje);
 				indice = 0;
-				Board_LED_Toggle(4);
+				Board_LED_Toggle(4); //cambio estado "LED 2" (rojo)
 			}else{
 				indice ++;
 			}

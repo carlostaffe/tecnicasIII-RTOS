@@ -110,7 +110,7 @@ static void Tarea1 (void * pvParameters)
 		if (error_1){
 			strcpy (cad_err, "T1:E00\n");
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 100);
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 
 		}
 		
@@ -118,7 +118,7 @@ static void Tarea1 (void * pvParameters)
 		if (error_2){
 			strcpy (cad_err, "T1:E02\n");
 			xQueueSend (cola_err , (void *) cad_err ,(portTickType) 100);
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Resto proceso Tarea1 */
 		vTaskDelay(50 / portTICK_RATE_MS);
@@ -146,13 +146,13 @@ static void Tarea2 (void * pvParameters)
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
 			/* El timeout es 0 para no bloquear la tarea
 			si la cola está llena */
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Continuación proceso Tarea2 */
 		if (error_27){
 			strcpy (cad_err , "T2:E27\n");
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Resto proceso Tarea2 */
 		vTaskDelay(50 / portTICK_RATE_MS);
@@ -180,13 +180,13 @@ static void Tarea3 (void * pvParameters)
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
 			/* El timeout es 0 para no bloquear la tarea
 			si la cola está llena */
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Continuación proceso Tarea3 */
 		if (error_11){
 			strcpy (cad_err , "T3:E11\n");
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Resto proceso Tarea3 */
 		vTaskDelay(50 / portTICK_RATE_MS);
@@ -215,13 +215,13 @@ static void Tarea4 (void * pvParameters)
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
 			/* El timeout es 0 para no bloquear la tarea
 			si la cola está llena */
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Continuación proceso Tarea4 */
 		if (error_21){
 			strcpy (cad_err, "T4:E21\n");
 			xQueueSend (cola_err, (void *) cad_err, (portTickType) 0);
-			Board_LED_Toggle(5); //titila led verde ...
+			Board_LED_Toggle(5); //titila "LED 3" ( verde )
 		}
 		/* Resto proceso Tarea4 */
 		vTaskDelay(50 / portTICK_RATE_MS);

@@ -1,4 +1,17 @@
 /* Copyright 2017
+4.9.  Gestión de tiempo
+4.9.2.  Ejemplo: arranque de una bomba (Pagina 124)
+La función ArrancaBomba arranca una
+bomba mediante un arrancador estrella/triángulo y después de un tiempo
+monitoriza la presión de salida de la bomba para verificar que ésta está
+funcionando correctamente. El tiempo de retardo desde que se conecta el
+motor en triángulo hasta que se conecta en estrella es de 500 ms, mientras
+que el tiempo que se espera antes de verificar si se está bombeando es igual
+a 1 minuto, por si acaso la bomba estaba descargada.
+	usa funcion vTaskDelay()
+ + 
+4.9.3.  Ejemplo: tarea periódica (Pagina 125)
+	usa funcion vTaskDelayUntil()
  */
 
 /*==================[inclusions]=============================================*/
@@ -35,43 +48,45 @@ static void InitHardware(void)
     Board_Init();
 }
 
-uint8_t LeeEntradas(void)
-{
-	return Buttons_GetStatus();
-}
+//uint8_t LeeEntradas(void)
+//{
+//	return Buttons_GetStatus();
+//}
 
 void ConectaTensionEstrella(void)
 {
-	Board_LED_Set(4, TRUE);
+	Board_LED_Set(3, TRUE); //prende "LED 1" (amarillo)
 }
 
 void ConectaTensionTriangulo(void)
 {
-	Board_LED_Set(5, TRUE);
+	Board_LED_Set(3, FALSE); //apaga "LED 1" (amarillo)
+	Board_LED_Set(5, TRUE); //enciende "LED 3" (verde)
 }
 
 void DesconectaTension(void)
 {
-	Board_LED_Set(4, FALSE);
-	Board_LED_Set(5, FALSE);
+	Board_LED_Set(5, FALSE); //apaga "LED 3" (verde)
 }
 
 void AlarmaFalloArranque(void)
 {
-	Board_LED_Set(3, TRUE);
+	Board_LED_Set(4, TRUE); //enciende "LED 2" (rojo)
+	while (1); /* Se queda bloqueado el sistema hasta que
+				venga el técnico de mantenimiento */
 }
 
 uint8_t PresionOK(void)
 {
-	return (Buttons_GetStatus() & 0x01);
+	return (Buttons_GetStatus() & 0x01); //solo si se esta apretando la "TEC 1", retorna != 0 
 }
 
 void ArrancaBomba(void)
 {
 	ConectaTensionEstrella();
-	vTaskDelay (1000/portTICK_RATE_MS);
+	vTaskDelay (1000/portTICK_RATE_MS); /*1000 ms ... o 1 seg */
 	ConectaTensionTriangulo();
-	vTaskDelay (10000/portTICK_RATE_MS);
+	vTaskDelay (5000/portTICK_RATE_MS); /*5 seg */
 	if( PresionOK()==0){ /* No hay presión . Por tanto la
 							bomba no está funcionando */
 		DesconectaTension();
@@ -83,8 +98,8 @@ void Arranque(void *pvParameters)
 {
 	while(1){
 		ArrancaBomba();
-		vTaskDelay (1000/portTICK_RATE_MS);
-		Board_LED_Set(3, FALSE);
+		Board_LED_Set(5, FALSE); // apaga  "LED 3" (verde)
+		vTaskDelay (3000/portTICK_RATE_MS); // espera 3 segundos mas y reinicia todo
 	}
 }
 
@@ -94,7 +109,7 @@ void TareaPeriodica (void *pvParameters)
 	portTickType xPeriodo;
 	uint8_t valor;
 	
-	xPeriodo = 100/portTICK_RATE_MS ; /* Periodo 200 ms */
+	xPeriodo = 500/portTICK_RATE_MS ; /* Periodo 500 ms */
 	
 	/* Inicializa xLastWakeTime con el tiempo actual */
 	xLastWakeTime = xTaskGetTickCount();
@@ -102,7 +117,7 @@ void TareaPeriodica (void *pvParameters)
 		vTaskDelayUntil (&xLastWakeTime, xPeriodo ); /* Espera
 										el siguiente periodo */
 		/* Realiza su proceso */
-		Chip_GPIO_SetPortValue(LPC_GPIO_PORT, 5, valor);
+		Chip_GPIO_SetPortValue(LPC_GPIO_PORT, 5, valor); /* cambia valor de RGB ? */
 		valor++;	
 	}
 }
