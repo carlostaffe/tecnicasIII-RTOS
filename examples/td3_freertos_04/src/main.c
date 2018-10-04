@@ -28,8 +28,8 @@ a 1 minuto, por si acaso la bomba estaba descargada.
 
 /*==================[macros and definitions]=================================*/
 
-#define PRIO_ARRANQUE 2
-#define PRIO_TAR_PER 3
+#define PRIO_ARRANQUE 2 
+#define PRIO_TAR_PER 3	//mayor prioridad para tarea periodica
 #define TAM_PILA 1024
 
 /*==================[internal data declaration]==============================*/
