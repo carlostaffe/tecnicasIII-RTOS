@@ -34,8 +34,7 @@ microcontrollers.
 ## Supported toolchains
 - gcc-arm-none-eabi
 ## VERY IMPORTANTE
-- si lo corres con Ubuntu 18.04 vas a tener problemas con la versión del cross compiler, tiene un bug
-- te sugiero downgradearlo
+- si lo corres con Ubuntu 18.04 vas a tener problemas con la versión del cross compiler, tiene un bug y te sugiero downgradearlo
 - apt install gcc-arm-none-eabi #instala las lib y las utils 
 - apt remove gcc-arm-none-eabi # borrar solo el gcc
 - descargar uno anterior de http://archive.ubuntu.com/ubuntu/pool/universe/g/gcc-arm-none-eabi/gcc-arm-none-eabi_4.9.3+svn231177-1_amd64.deb
