@@ -1,3 +1,32 @@
+/* Copyright 2017
+        codigo basado en el libro Sistemas Empotrados en tiempo real 
+1.6.2.  Datos compartidos (Pagina 21)
+
+Al trasladar los procesos lentos a la tarea de primer plano se soluciona
+el problema de la latencia, pero por desgracia se crea un nuevo problema:
+la comunicación entre tareas que se ejecutan asíncronamente.
+En este ejemplo las dos tareas se comunican compartiendo tres varia-
+bles globales. El problema que se origina se denomina incoherencia de
+datos y se ilustra con el siguiente ejemplo: supóngase que en el programa
+anterior la interrupción del temporizador se produce cuando se están co-
+piando los argumentos de la tarea ImprimeHora , en concreto cuando se ha
+copiado el minuto de la hora actual, pero aún no se ha copiado el segundo
+Además, como las leyes de Murphy se cumplen siempre, se puede esperar 
+que en esta interrupción la variable ms llegue a 1000, con lo cual se 
+actualizarán los segundos. Si además  la variable seg es igual a 59,
+dicha variable pasará a valer 0 y la variable min se incrementará en 1.
+En ese momento la interrupción terminará, devolviendo el control a la tarea
+de primer plano que copiará el valor actualizado de seg antes de llamar a
+la tarea ImprimeHora . Lo que se vería en la pantalla es lo siguiente, supo-
+niendo que la interrupción se ha producido en la llamada que imprime la
+segunda línea:
+13:13:59
+13:13:00
+13:14:00
+nota: en minicom velocidad en 300 bauds -> ctr+a z o
+
+ */
+
 /*==================[inclusions]=============================================*/
 
 #include "board.h"

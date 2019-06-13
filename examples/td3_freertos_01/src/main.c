@@ -13,6 +13,8 @@ Se usa un semáforo adicional (sem_hora) para que ImprimeHora() se quede
 bloqueado mientras no cambia la hora. Lo incrementa la rutina RIT_IRQHandler()
 sem_serie 	->	exclusion mutua para seccion critica
 sem_hora	->	serializar para imprimir luego de cambiar hora
+nota: en minicom agregar Add Carriage Ret -> ctr+a z u
+      velocidad en 115200 -> ctr+a z o
  */
 
 /*==================[inclusions]=============================================*/
@@ -106,7 +108,7 @@ static void ImprimeHora(void * a)
 	while (1){
 		if( xSemaphoreTake (sem_hora , ( portTickType ) 2000 ) == pdTRUE ){
 			/* Se bloquea hasta que llegue la interrupción de tiempo */
-//			DisableInt();  porque esta comentado ???
+//			DisableInt();  
 			copia_hora = hora_act ;
 //			EnableInt ();
 			sprintf (cadena , " %02d: %02d: %02d\n", copia_hora.hor, copia_hora.min, copia_hora .seg );

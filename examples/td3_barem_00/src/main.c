@@ -1,3 +1,22 @@
+/* Copyright 2017
+        codigo basado en el libro Sistemas Empotrados en tiempo real 
+1.6.1.  Latencia en sistemas primer plano / segundo plano (Pagina 18)
+La tarea mostrada sirve para implantar un reloj. Se ha supuesto que
+esta tarea está asociada a la interrupción de un temporizador, el cual se
+ha configurado para que interrumpa cada milisegundo. Supóngase ahora
+que la función encargada de imprimir la hora tarda en ejecutarse 20 ms.
+Como por defecto, mientras se está ejecutando una interrupción, el micro-
+procesador mantiene las interrupciones inhabilitadas, durante los 20 ms
+en los que se está imprimiendo la hora no se reciben interrupciones y por
+tanto no se actualiza el contador de milisegundos. En consecuencia, cada
+segundo se atrasan 20 ms, lo cual es un error inaceptable.
+
+nota: en minicom velocidad en 300 bauds -> ctr+a z o
+
+ */
+
+
+
 /*==================[inclusions]=============================================*/
 
 #include "board.h"
