@@ -1,3 +1,6 @@
+# Ejercicios para Tecnicas III
+ - examples/td_*
+
 # Firmware v2
 Firmware v2 is a C language software development environment for embedded
 systems. At the moment it focuses specifically on the programming of 
@@ -30,6 +33,16 @@ microcontrollers.
 
 ## Supported toolchains
 - gcc-arm-none-eabi
+## VERY IMPORTANTE
+- si lo corres con Ubuntu 18.04 vas a tener problemas con la versión del cross compiler, tiene un bug
+- te sugiero downgradearlo
+- apt install gcc-arm-none-eabi #instala las lib y las utils 
+- apt remove gcc-arm-none-eabi # borrar solo el gcc
+- descargar uno anterior de http://archive.ubuntu.com/ubuntu/pool/universe/g/gcc-arm-none-eabi/gcc-arm-none-eabi_4.9.3+svn231177-1_amd64.deb
+- descargar una biblioteca de punto flotante que le va a faltar de http://archive.ubuntu.com/ubuntu/pool/main/m/mpfr4/libmpfr4_3.1.4-1_amd64.deb
+- instalar primero la bib con # dpkg -i libmpfr4_3.1.4-1_amd64.deb
+- finalmente gcc para arm con # dpkg -i gcc-arm-none-eabi_4.9.3+svn231177-1_amd64.deb
+
 
 ## Usage
 * Make sure you have an ```arm-none-eabi-*``` toolchain configured in your ```PATH```. If you don't have it, download [GCC ARM Embedded](https://launchpad.net/gcc-arm-embedded).
