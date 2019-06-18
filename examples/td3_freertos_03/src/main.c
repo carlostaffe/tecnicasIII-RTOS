@@ -83,7 +83,7 @@ static void SeriePuts(char *data)
 
 static void ProcesaMensaje(char *data)
 {
-	SeriePuts(data);
+	SeriePuts(data); //hace eco
 }
 
 void ProcesaRecSerie (void * pvParameters)
