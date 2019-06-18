@@ -25,7 +25,8 @@ segunda línea:
 13:14:00
 nota: en minicom velocidad en 300 bauds -> ctr+a z o
 
-se mejora copiando la estructura HORA a una estructura local para la funcion ImprimeHora
+se mejora copiando la estructura HORA a una estructura local (copia_hora) para la funcion ImprimeHora
+para tratar de evitar la "incoherencia" ... pero solo la mejora
 se cambiaron de nombre las funciones para que se corresponda con td3_freertos_-1
  */
 
@@ -104,9 +105,9 @@ void RIT_IRQHandler(void)
 {
 	hora_act.useg++;
 	if (hora_act.useg == 1000){
-		Board_LED_Toggle(5);
 		hora_act.useg = 0;
 		hora_act.seg++;
+		Board_LED_Toggle(5);
 		if(hora_act.seg == 60){
 			hora_act.seg = 0;
 			hora_act.min ++;

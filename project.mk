@@ -47,7 +47,8 @@
 #PROJECT = sapi_examples/edu-ciaa-nxp/sapi_usb_host_01_mass_storage_fatfilesystem
 #PROJECT = examples/td3_barem_00
 #PROJECT = examples/td3_barem_01
-PROJECT = examples/td3_barem_02
+#PROJECT = examples/td3_barem_02
+PROJECT = examples/td3_freertos_-2
 #PROJECT = examples/td3_freertos_-1
 #PROJECT = examples/td3_freertos_00
 #PROJECT = examples/td3_freertos_01
