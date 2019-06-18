@@ -1,4 +1,15 @@
-/*==================[inclusions]=============================================*/
+/* este codigo NO esta en el libro de Sistemas Empotrados en tiempo real
+ * pero el objetivo es intriducir a FreeRTOS usando solo una  tarea que 
+ * imprime por el puerto serie, e invocando al planificador
+ *
+ *  - xTaskCreate()
+ *  - vTaskStartScheduler()
+ *
+ * esto hará un busy waiting ... o podemos usar :
+ *  - vTaskDelay(500 / portTICK_RATE_MS); // 500 ms en este caso
+ *
+ *  */
+ /*==================[inclusions]=============================================*/
 
 #include "board.h"
 #include "chip.h"
@@ -18,6 +29,7 @@ typedef struct {
 uint8_t hor;
 uint8_t min;
 uint8_t seg;
+uint16_t useg;
 }HORA;
 
 /*==================[internal data declaration]==============================*/
@@ -28,21 +40,21 @@ uint8_t seg;
  *	@return none
  */
 //static void initHardware(void);
+
+/*==================[internal data definition]===============================*/
+
+/*==================[external data definition]===============================*/
+
+static HORA hora_act ={0,0,0,0};
+
+/*==================[internal functions definition]==========================*/
+
 static void initHardware(void)
 {
     SystemCoreClockUpdate();
     Board_Init();
  
 }
-
-/*==================[internal data definition]===============================*/
-
-/*==================[external data definition]===============================*/
-
-static HORA hora_act ={0,0,0};
-
-/*==================[internal functions definition]==========================*/
-
 
 static void InitSerie(void)
 {
@@ -68,7 +80,7 @@ static void SeriePuts(char *data)
 static void InitTimer(void)
 {
 	Chip_RIT_Init(LPC_RITIMER);
-	Chip_RIT_SetTimerInterval(LPC_RITIMER,1000);
+	Chip_RIT_SetTimerInterval(LPC_RITIMER,1);
 }
 
 static void ImprimeHora(void * a)
@@ -88,21 +100,23 @@ static void ImprimeHora(void * a)
 
 void RIT_IRQHandler(void)
 {
-	Board_LED_Toggle(5); //titila "LED 3" ( verde )
-	
-	hora_act .seg ++;
-	if( hora_act .seg == 60){
-		hora_act .seg = 0;
-		hora_act .min ++;
-		if( hora_act .min == 60){
-			hora_act .min = 0;
-			hora_act .hor ++;
-			if( hora_act .hor == 24){
-				hora_act .hor = 0;
+	hora_act.useg++;
+	if (hora_act.useg == 1000){
+		hora_act.useg = 0;
+		hora_act.seg++;
+		Board_LED_Toggle(5); //titila "LED 3" ( verde )
+		if( hora_act.seg == 60){
+			hora_act.seg = 0;
+			hora_act.min++;
+			if( hora_act.min == 60){
+				hora_act.min = 0;
+				hora_act.hor++;
+				if( hora_act.hor == 24){
+					hora_act.hor = 0;
+				}
 			}
 		}
 	}
-	
 	/* Borra el flag de interrupción */
 	Chip_RIT_ClearInt(LPC_RITIMER);
 
