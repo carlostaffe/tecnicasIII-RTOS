@@ -53,8 +53,8 @@
 #PROJECT = examples/td3_freertos_00
 #PROJECT = examples/td3_freertos_01
 #PROJECT = examples/td3_freertos_02
-PROJECT = examples/td3_freertos_03
-#PROJECT = examples/td3_freertos_04
+#PROJECT = examples/td3_freertos_03
+PROJECT = examples/td3_freertos_04
 
 # sapi_examples
 

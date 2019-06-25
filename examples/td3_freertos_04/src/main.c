@@ -29,7 +29,7 @@ a 1 minuto, por si acaso la bomba estaba descargada.
 /*==================[macros and definitions]=================================*/
 
 #define PRIO_ARRANQUE 2 
-#define PRIO_TAR_PER 3	//mayor prioridad para tarea periodica
+#define PRIO_TAR_PER 3	//mayor prioridad para tarea periodica ... para que no cambie el periodo ..
 #define TAM_PILA 1024
 
 /*==================[internal data declaration]==============================*/
@@ -98,8 +98,8 @@ void Arranque(void *pvParameters)
 {
 	while(1){
 		ArrancaBomba();
+		vTaskDelay (10000/portTICK_RATE_MS); // espera 10 segundos mas y reinicia todo
 		Board_LED_Set(5, FALSE); // apaga  "LED 3" (verde)
-		vTaskDelay (3000/portTICK_RATE_MS); // espera 3 segundos mas y reinicia todo
 	}
 }
 
@@ -130,7 +130,7 @@ int main(void)
 
 	/* Se crean las tareas */
 	xTaskCreate(Arranque, (const char *)"Arranque", TAM_PILA, NULL, PRIO_ARRANQUE, NULL );
-	xTaskCreate(TareaPeriodica, (const char *)"TareaPerio", TAM_PILA, NULL, PRIO_TAR_PER, NULL );
+//	xTaskCreate(TareaPeriodica, (const char *)"TareaPerio", TAM_PILA, NULL, PRIO_TAR_PER, NULL );
 	
 	vTaskStartScheduler(); /* y por último se arranca el planificador . */
 }
