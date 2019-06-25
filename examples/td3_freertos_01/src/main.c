@@ -123,7 +123,10 @@ static void ImprimeHora(void * a)
 			}else{
 				/* Después de 1000 ticks no se ha obtenido el
 				semáforo . Se podría dar un aviso o
-				simplemente no hacer nada como en este caso */
+				simplemente no hacer nada como en este caso 
+				o que tooglee un led rojo */
+				Board_LED_Toggle(4); //cambio estado "LED 2" (rojo)
+
 			}
 		}
 	}
@@ -148,7 +151,9 @@ static void EnviaEntradas(void * a)
 			}else{
 				/* Después de 1000 ticks no se ha obtenido el
 				semáforo . Se podría dar un aviso o
-				simplemente no hacer nada como en este caso */
+				simplemente no hacer nada como en este caso 
+				o que tooglee un led amarillo */
+				Board_LED_Toggle(3); //cambio estado "LED 1" (amarillo)
 			}
 			entradas_ant = entradas;
 		}
@@ -198,7 +203,7 @@ int main(void)
 	vSemaphoreCreateBinary (sem_serie); //se inicializa por defecto en 1
 	vSemaphoreCreateBinary (sem_hora);  //se inicializa por defecto en 1
 	xSemaphoreTake (sem_hora , ( portTickType ) 1); //es para que ImprimeHora se bloquee hasta que llegue la 1ra IRQ 
-	//xSemaphoreTake (sem_serie , ( portTickType ) 1); // abrazo mortal !
+//	xSemaphoreTake (sem_serie , ( portTickType ) 1); // abrazo mortal !
 	/* Se crean las tareas */
 	xTaskCreate(ImprimeHora, (const char *)"ImpHora", TAM_PILA, NULL, PRIO_IMP_HORA, NULL );
 	xTaskCreate(EnviaEntradas, (const char *)"EnvEntr", TAM_PILA, NULL, PRIO_ENV_ENTR, NULL );

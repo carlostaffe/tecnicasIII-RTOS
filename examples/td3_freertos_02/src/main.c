@@ -240,7 +240,7 @@ static void TareaErr (void * pvParameters )
 			/* Se ha recibido un dato. Se escribe en EEPROM */
 			//EscEEPROM ((void *) cad_rec, 8);
 			/* Se ha recibido un dato. Se escribe en el puerto Serie */
-			sprintf (cadena , "Serial: %s\n", cad_rec );
+			sprintf (cadena , "Error: %s\n", cad_rec );
 			SeriePuts (cadena);
 		}
 		/* si después de un timeout no se ha recibido nada
