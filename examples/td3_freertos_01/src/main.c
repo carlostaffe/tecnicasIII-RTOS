@@ -32,6 +32,11 @@ nota: en minicom agregar Add Carriage Ret -> ctr+a z u
 /*==================[macros and definitions]=================================*/
 
 #define PRIO_IMP_HORA 2 //mas prioritaria
+/* La tarea EnviaEntrada se ejecuta permanentemente. Luego que escribe el puerto serie,
+ y libera el semáforo, por lo que la area ImprimeHora pasará al estado “lista” y 
+ como tiene mayor prioridad que EnviaEntradas, se comenzará a ejecutar
+ que pasaría si la tarea EnviaEntrada tuviera mas prioridad que la ImprimeHora ?
+ */
 #define PRIO_ENV_ENTR 1
 #define TAM_PILA 1024
 
@@ -193,6 +198,7 @@ int main(void)
 	vSemaphoreCreateBinary (sem_serie); //se inicializa por defecto en 1
 	vSemaphoreCreateBinary (sem_hora);  //se inicializa por defecto en 1
 	xSemaphoreTake (sem_hora , ( portTickType ) 1); //es para que ImprimeHora se bloquee hasta que llegue la 1ra IRQ 
+	//xSemaphoreTake (sem_serie , ( portTickType ) 1); // abrazo mortal !
 	/* Se crean las tareas */
 	xTaskCreate(ImprimeHora, (const char *)"ImpHora", TAM_PILA, NULL, PRIO_IMP_HORA, NULL );
 	xTaskCreate(EnviaEntradas, (const char *)"EnvEntr", TAM_PILA, NULL, PRIO_ENV_ENTR, NULL );
