@@ -1,34 +1,21 @@
 /* Copyright 2017
         codigo basado en el libro Sistemas Empotrados en tiempo real 
-1.6.2.  Datos compartidos (Pagina 21)
+1.6.1.  Latencia en sistemas primer plano / segundo plano (Pagina 18)
+La tarea mostrada sirve para implantar un reloj. Se ha supuesto que
+esta tarea está asociada a la interrupción de un temporizador, el cual se
+ha configurado para que interrumpa cada milisegundo. Supóngase ahora
+que la función encargada de imprimir la hora tarda en ejecutarse 20 ms.
+Como por defecto, mientras se está ejecutando una interrupción, el micro-
+procesador mantiene las interrupciones inhabilitadas, durante los 20 ms
+en los que se está imprimiendo la hora no se reciben interrupciones y por
+tanto no se actualiza el contador de milisegundos. En consecuencia, cada
+segundo se atrasan 20 ms, lo cual es un error inaceptable.
 
-Al trasladar los procesos lentos a la tarea de primer plano se soluciona
-el problema de la latencia, pero por desgracia se crea un nuevo problema:
-la comunicación entre tareas que se ejecutan asíncronamente.
-En este ejemplo las dos tareas se comunican compartiendo tres varia-
-bles globales. El problema que se origina se denomina incoherencia de
-datos y se ilustra con el siguiente ejemplo: supóngase que en el programa
-anterior la interrupción del temporizador se produce cuando se están co-
-piando los argumentos de la tarea ImprimeHora , en concreto cuando se ha
-copiado el minuto de la hora actual, pero aún no se ha copiado el segundo
-Además, como las leyes de Murphy se cumplen siempre, se puede esperar 
-que en esta interrupción la variable ms llegue a 1000, con lo cual se 
-actualizarán los segundos. Si además  la variable seg es igual a 59,
-dicha variable pasará a valer 0 y la variable min se incrementará en 1.
-En ese momento la interrupción terminará, devolviendo el control a la tarea
-de primer plano que copiará el valor actualizado de seg antes de llamar a
-la tarea ImprimeHora . Lo que se vería en la pantalla es lo siguiente, supo-
-niendo que la interrupción se ha producido en la llamada que imprime la
-segunda línea:
-13:13:59
-13:13:00
-13:14:00
 nota: en minicom velocidad en 300 bauds -> ctr+a z o
 
-se mejora copiando la estructura HORA a una estructura local (copia_hora) para la funcion ImprimeHora
-para tratar de evitar la "incoherencia" ... pero solo la mejora
-se cambiaron de nombre las funciones para que se corresponda con td3_freertos_-1
  */
+
+
 
 /*==================[inclusions]=============================================*/
 
@@ -39,23 +26,14 @@ se cambiaron de nombre las funciones para que se corresponda con td3_freertos_-1
 
 /*==================[macros and definitions]=================================*/
 
-typedef struct {
-uint8_t hor;
-uint8_t min;
-uint8_t seg;
-uint16_t useg;
-}HORA;
-
 /*==================[internal data declaration]==============================*/
 
 /*==================[internal functions declaration]=========================*/
 
 /*==================[internal data definition]===============================*/
 
-
 /*==================[external data definition]===============================*/
 
-static HORA hora_act ={0,0,0,0};
 /*==================[internal functions definition]==========================*/
 
 static void initHardware(void)
@@ -91,34 +69,35 @@ static void InitTimer(void)
 	Chip_RIT_SetTimerInterval(LPC_RITIMER,1);
 }
 
-static void ImprimeHora(void)
+static void ImprimeHora(int h, int m, int s)
 {
-	HORA copia_hora;
-	char cadena [10];
-	
-	copia_hora = hora_act;
-	sprintf (cadena , " %02d: %02d: %02d\n", copia_hora.hor, copia_hora.min, copia_hora.seg);
+	char cadena [30];
+
+	sprintf (cadena , " Hora: %02d : %02d : %02d\n\r", h, m, s);
 	SeriePuts (cadena);
 }
 
 void RIT_IRQHandler(void)
 {
-	hora_act.useg++;
-	if (hora_act.useg == 1000){
-		hora_act.useg = 0;
-		hora_act.seg++;
+	static int ms, seg, min, hor;
+
+	ms++;
+	if(ms == 1000){
 		Board_LED_Toggle(5);
-		if(hora_act.seg == 60){
-			hora_act.seg = 0;
-			hora_act.min ++;
-			if(hora_act.min == 60){
-				hora_act.min = 0;
-				hora_act.hor ++;
-				if(hora_act.hor == 24){
-					hora_act.hor = 0;
+		ms = 0;
+		seg++;
+		if(seg == 60){
+			seg = 0;
+			min ++;
+			if(min == 60){
+				min = 0;
+				hor ++;
+				if(hor == 24){
+					hor = 0;
 				}
 			}
 		}
+		ImprimeHora(hor, min, seg);
 	}
 	Chip_RIT_ClearInt(LPC_RITIMER);
 }
@@ -133,9 +112,7 @@ int main(void)
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
 
-	for(;;){
-		ImprimeHora();
-	}
+	for(;;);
 }
 
 /*==================[end of file]============================================*/

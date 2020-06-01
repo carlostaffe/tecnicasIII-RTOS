@@ -25,6 +25,21 @@ segunda línea:
 13:14:00
 nota: en minicom velocidad en 300 bauds -> ctr+a z o
 
+se mejora copiando la estructura HORA a una estructura local (copia_hora) para la funcion ImprimeHora
+para tratar de evitar la "incoherencia" ... pero solo la mejora
+se cambiaron de nombre las funciones para que se corresponda con td3_freertos_-1
+
+De acuerdo a la hoja 22,
+El problema que se acaba de exponer se origina al producirse una inte-
+rrupción dentro de lo que se denomina una zona crítica. Por zona crítica
+se entiende toda zona de código en la que se usan recursos 12 compartidos
+entre dos tareas que se ejecutan de forma asíncrona, como por ejemplo en-
+tre una tarea de primer plano y una de segundo plano, o dos de segundo
+plano.
+Para evitar incoherencias de datos es necesario conseguir que la eje-
+cución de la zona crítica se realice de principio a fin sin ningún tipo de
+interrupción. Por tanto una solución podría ser inhabilitar las interrupcio-
+nes durante la ejecución de la zona crítica:
  */
 
 /*==================[inclusions]=============================================*/
@@ -36,16 +51,23 @@ nota: en minicom velocidad en 300 bauds -> ctr+a z o
 
 /*==================[macros and definitions]=================================*/
 
+typedef struct {
+uint8_t hor;
+uint8_t min;
+uint8_t seg;
+uint16_t useg;
+}HORA;
+
 /*==================[internal data declaration]==============================*/
 
 /*==================[internal functions declaration]=========================*/
 
 /*==================[internal data definition]===============================*/
 
-int seg, min, hor;
 
 /*==================[external data definition]===============================*/
 
+static HORA hora_act ={0,0,0,0};
 /*==================[internal functions definition]==========================*/
 
 static void initHardware(void)
@@ -54,7 +76,7 @@ static void initHardware(void)
     Board_Init();
 }
 
-static void InicializaSerie(void)
+static void InitSerie(void)
 {
     Chip_UART_Init(LPC_USART2);
 	Chip_UART_SetBaud(LPC_USART2, 300);  /* Set Baud rate */
@@ -75,7 +97,7 @@ static void SeriePuts(char *data)
 	}
 }
 
-static void InicializaTemporizador(void)
+static void InitTimer(void)
 {
 	Chip_RIT_Init(LPC_RITIMER);
 	Chip_RIT_SetTimerInterval(LPC_RITIMER,1);
@@ -83,33 +105,30 @@ static void InicializaTemporizador(void)
 
 static void ImprimeHora(void)
 {
-	char cadena [30];
-
-	sprintf (cadena , " Hora: %02d", hor);
-	SeriePuts (cadena);
-	sprintf (cadena , " : %02d : ", min);
-	SeriePuts (cadena);
-	sprintf (cadena , "%02d\n\r", seg);
+	HORA copia_hora;
+	char cadena [10];
+	__disable_irq(); // deshabilita interrupciones 
+	copia_hora = hora_act;
+	__enable_irq(); // habilita interrupciones 
+	sprintf (cadena , " %02d: %02d: %02d\n", copia_hora.hor, copia_hora.min, copia_hora.seg);
 	SeriePuts (cadena);
 }
 
 void RIT_IRQHandler(void)
 {
-	static int ms;
-
-	ms++;
-	if(ms == 1000){
+	hora_act.useg++;
+	if (hora_act.useg == 1000){
+		hora_act.useg = 0;
+		hora_act.seg++;
 		Board_LED_Toggle(5);
-		ms = 0;
-		seg++;
-		if(seg == 60){
-			seg = 0;
-			min ++;
-			if(min == 60){
-				min = 0;
-				hor ++;
-				if(hor == 24){
-					hor = 0;
+		if(hora_act.seg == 60){
+			hora_act.seg = 0;
+			hora_act.min ++;
+			if(hora_act.min == 60){
+				hora_act.min = 0;
+				hora_act.hor ++;
+				if(hora_act.hor == 24){
+					hora_act.hor = 0;
 				}
 			}
 		}
@@ -122,8 +141,8 @@ void RIT_IRQHandler(void)
 int main(void)
 {
 	initHardware(); /* Inicializa el Hardware del microcontrolador */
-	InicializaTemporizador(); /* Inicializa timer RIT */
-	InicializaSerie(); /* Inicializa puerto serie */
+	InitTimer(); /* Inicializa timer RIT */
+	InitSerie(); /* Inicializa puerto serie */
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
 

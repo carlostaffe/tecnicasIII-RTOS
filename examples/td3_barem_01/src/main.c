@@ -1,30 +1,19 @@
 /* Copyright 2017
         codigo basado en el libro Sistemas Empotrados en tiempo real 
-1.6.2.  Datos compartidos (Pagina 21)
-
-Al trasladar los procesos lentos a la tarea de primer plano se soluciona
-el problema de la latencia, pero por desgracia se crea un nuevo problema:
-la comunicación entre tareas que se ejecutan asíncronamente.
-En este ejemplo las dos tareas se comunican compartiendo tres varia-
-bles globales. El problema que se origina se denomina incoherencia de
-datos y se ilustra con el siguiente ejemplo: supóngase que en el programa
-anterior la interrupción del temporizador se produce cuando se están co-
-piando los argumentos de la tarea ImprimeHora , en concreto cuando se ha
-copiado el minuto de la hora actual, pero aún no se ha copiado el segundo
-Además, como las leyes de Murphy se cumplen siempre, se puede esperar 
-que en esta interrupción la variable ms llegue a 1000, con lo cual se 
-actualizarán los segundos. Si además  la variable seg es igual a 59,
-dicha variable pasará a valer 0 y la variable min se incrementará en 1.
-En ese momento la interrupción terminará, devolviendo el control a la tarea
-de primer plano que copiará el valor actualizado de seg antes de llamar a
-la tarea ImprimeHora . Lo que se vería en la pantalla es lo siguiente, supo-
-niendo que la interrupción se ha producido en la llamada que imprime la
-segunda línea:
-13:13:59
-13:13:00
-13:14:00
-nota: en minicom velocidad en 300 bauds -> ctr+a z o
-
+1.5     Procesamiento Secuecial (Pagina 8)
+1.5.1 Ejemplo: Un Termostato digital
+se muestra un ejemplo sencillo de un sistema en tiempo real implantado mediante 
+procesamiento secuencial. El sistema es un termostato para la calefacción. 
+Como se puede observar, el sistema consta de cuatro tareas que se ejecutan continuamente:
+- La primera verifica si hay alguna tecla pulsada (UP o DOWN) y en caso
+afirmativo modifica la consigna de temperatura. Si no hay ninguna
+tecla pulsada, simplemente termina de ejecutarse (no bloqueo).
+- La segunda tarea realiza una medida de la temperatura de la habitación.
+- La tercera ejecuta el control. Éste puede ser un control sencillo todo/nada, 
+consistente en que si la temperatura es mayor que la consigna
+se apaga la calefacción y si es inferior se enciende.
+- Por último, la cuarta tarea se encarga de encender o apagar la cale-
+facción en función de la salida de la tarea de control
  */
 
 /*==================[inclusions]=============================================*/
@@ -42,7 +31,18 @@ nota: en minicom velocidad en 300 bauds -> ctr+a z o
 
 /*==================[internal data definition]===============================*/
 
-int seg, min, hor;
+#define UP 2
+#define DOWN 1
+#define ON 1
+#define OFF 0
+#define HISTERESIS 3
+#define LED_ROJO 4
+#define LED_VERDE 5
+int temp;
+int consigna = 10;
+int convertido = 0;
+int fin_timer = 0;
+int calefaccion;
 
 /*==================[external data definition]===============================*/
 
@@ -54,10 +54,36 @@ static void initHardware(void)
     Board_Init();
 }
 
-static void InicializaSerie(void)
+static void InitTimer(void) //el alcance esta afuera de este archivo
+{
+	Chip_RIT_Init(LPC_RITIMER);
+	Chip_RIT_SetTimerInterval(LPC_RITIMER,1);
+}
+
+void RIT_IRQHandler(void) //el alcalce esta fuera de este archivo
+{
+	static int seg;
+	static int ms;
+
+        ms++;
+        seg++;
+	if (ms == 100){
+		convertido = 1;
+		ms = 0;
+		}
+        if(seg == 1000){
+                Board_LED_Toggle(LED_VERDE); //actividad
+		fin_timer = 1;
+		seg = 0;
+	}
+
+	Chip_RIT_ClearInt(LPC_RITIMER);
+}
+
+static void InitSerie(void)
 {
     Chip_UART_Init(LPC_USART2);
-	Chip_UART_SetBaud(LPC_USART2, 300);  /* Set Baud rate */
+	Chip_UART_SetBaud(LPC_USART2, 9600);  /* Set Baud rate */
 	Chip_UART_ConfigData(LPC_USART2, (UART_LCR_WLEN8 | UART_LCR_SBS_1BIT));
 	Chip_UART_SetupFIFOS(LPC_USART2, UART_FCR_FIFO_EN | UART_FCR_TRG_LEV3); /* Modify FCR (FIFO Control Register)*/
 	Chip_UART_TXEnable(LPC_USART2); /* Enable UART Transmission */
@@ -75,60 +101,95 @@ static void SeriePuts(char *data)
 	}
 }
 
-static void InicializaTemporizador(void)
+static uint8_t LeerTeclado(void)
 {
-	Chip_RIT_Init(LPC_RITIMER);
-	Chip_RIT_SetTimerInterval(LPC_RITIMER,1);
+        return Buttons_GetStatus();
 }
 
-static void ImprimeHora(void)
-{
-	char cadena [30];
-
-	sprintf (cadena , " Hora: %02d", hor);
-	SeriePuts (cadena);
-	sprintf (cadena , " : %02d : ", min);
-	SeriePuts (cadena);
-	sprintf (cadena , "%02d\n\r", seg);
-	SeriePuts (cadena);
-}
-
-void RIT_IRQHandler(void)
-{
-	static int ms;
-
-	ms++;
-	if(ms == 1000){
-		Board_LED_Toggle(5);
-		ms = 0;
-		seg++;
-		if(seg == 60){
-			seg = 0;
-			min ++;
-			if(min == 60){
-				min = 0;
-				hor ++;
-				if(hor == 24){
-					hor = 0;
-				}
-			}
-		}
+static int Convirtiendo() {
+	if (convertido == 0){
+		return 0;
 	}
-	Chip_RIT_ClearInt(LPC_RITIMER);
+	else {
+		convertido = 0;
+		return 1;
+	}
 }
 
+static void LanzarConversionAD(void){
+	}
+
+static int LeerConversorAD(void){ //simulado
+	if (calefaccion == 1) {
+		temp = temp + 1;
+	}
+	else {
+		temp = temp - 1;
+	}
+	return temp;
+}
+////////////////////////////////////////////////////////
+
+static void LeerTeclas(void)
+{
+        uint8_t tecla;
+	tecla = LeerTeclado();
+	if(tecla == UP ){
+		consigna ++;
+	}
+	if(tecla == DOWN ){
+		consigna --;
+	}
+}
+
+static void MedirTemperatura(void){
+	LanzarConversionAD();
+	while ( Convirtiendo());
+	/* Esperar EOC */
+	temp = LeerConversorAD();
+
+}
+
+static void Controlar(void){
+	if(temp < consigna ){
+		calefaccion = ON;
+		Board_LED_Set(LED_ROJO, TRUE); //enciende led
+		}
+	else if(temp > consigna + HISTERESIS ){
+		calefaccion = OFF;
+		Board_LED_Set(LED_ROJO, FALSE); //apaga led
+		}
+}
+
+static void ImprimirTemp(void)
+{
+	char cadena [50];
+	sprintf (cadena , " Temp:%02d C - Consigna:%02d - calefaccion:%01d\n", temp,consigna,calefaccion);
+	SeriePuts (cadena);
+}
+
+
+static void TareaInactiva (void)
+{
+	while ( ! fin_timer );
+	fin_timer = 0;
+}
 /*==================[external functions definition]==========================*/
 
 int main(void)
 {
 	initHardware(); /* Inicializa el Hardware del microcontrolador */
-	InicializaTemporizador(); /* Inicializa timer RIT */
-	InicializaSerie(); /* Inicializa puerto serie */
+	InitTimer(); /* Inicializa timer RIT */
+	InitSerie(); /* Inicializa puerto serie */
 
 	NVIC_EnableIRQ(RITIMER_IRQn);
 
 	for(;;){
-		ImprimeHora();
+		LeerTeclas();
+		MedirTemperatura();
+		Controlar();
+		ImprimirTemp();
+		//TareaInactiva(); 
 	}
 }
 
